@@ -19,11 +19,11 @@ The paper explore four distinct modes for text image generation:
 
 ## Dataset Used
 
-For training and evaluation, As mentioned in the paper I utilized the IAM Handwritten Dataset, which is a widely used dataset in the field of handwritten text recognition and generation. The IAM Handwritten Dataset contains a large collection of handwritten text images along with their corresponding transcriptions.
+For training and evaluation, As mentioned in the paper I utilized the IAM Handwritten Dataset, which is a widely used dataset in the field of handwritten text recognition and generation. The IAM Handwritten Dataset contains a large collection of handwritten text images along with their corresponding transcriptions. 
 
 ### Dataset Details
 
-- **Source**: The IAM Handwritten Dataset is publicly available on Kaggle.
+- **Source**: The IAM Handwritten Dataset is publicly available on Kaggle at "https://www.kaggle.com/datasets/nibinv23/iam-handwriting-word-database"
 - **Content**: This dataset comprises images of handwritten words along with their ground-truth transcriptions. It provides a rich resource for training models on handwriting recognition and generation tasks.
 - **Usage in Paper**: The dataset is employed to train and evaluate the diffusion models presented in the paper, ensuring the generated text 
 images are both realistic and diverse.
