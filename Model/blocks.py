@@ -18,3 +18,106 @@ def get_time_embedding(time_steps, temb_dim):
     t_emb = time_steps[:,None].repeat(1, temb_dim // 2) / factor
     t_emb = torch.cat([torch.sin(t_emb), torch.cos(t_emb)], dim = -1)
     return t_emb
+
+
+# TODO : Implement the DownBlock Class UNET
+
+class DownBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, norm_channels, num_heads,
+                     t_emb_dim, is_down_sample, num_layers, is_attn):
+        super().__init__()
+        self.t_emb_dim = t_emb_dim
+        self.num_layers = num_layers
+        self.is_down_sample = is_down_sample
+        self.is_attn = is_attn
+        
+        # Resenet Block
+        self.resent_block_first = nn.ModuleList(
+            [
+                nn.Sequential(
+                    nn.GroupNorm(num_groups=norm_channels, num_channels = in_channels if i ==0  else out_channels),
+                    nn.SiLU(),
+                    nn.Conv2d(in_channels if i == 0 else out_channels, out_channels,
+                              kernel_size = 3, stride = 1, padding = 1)
+                    )
+                for i in range(num_layers)
+            ]
+        )
+
+        # Time Embedding Block
+        if self.t_emb_dim is not None:
+            self.t_emb_block = nn.ModuleList(
+                [
+                    nn.Sequential(
+                        nn.SiLU(),
+                        nn.Linear(self.t_emb_dim, out_channels)
+                    )
+                    for i in range(num_layers)
+                ]
+            )
+
+        # Resenet Second Block
+        self.resenet_block_second = nn.ModuleList(
+            [
+                nn.Sequential(
+                    nn.GroupNorm(norm_channels, out_channels),
+                    nn.SiLU(),
+                    nn.Conv2d(out_channels, out_channels,
+                               kernel_size = 3, stride = 1, padding = 1)
+                )
+                for _ in range(num_layers)
+            ]
+        )
+
+        # Attention Block
+        if self.is_attn:
+            self.attention_norms = nn.ModuleList(
+                [
+                    nn.GroupNorm(norm_channels, out_channels)
+                    for _ in range(num_layers)
+                ]
+            )
+            self.attentions = nn.ModuleList(
+                [
+                    nn.MultiheadAttention(out_channels, num_heads, batch_first = True )
+                    for _ in range(num_layers)
+                ]
+            )
+        # Downsample Block
+        self.residual_input_conv = nn.ModuleList(
+            [
+                nn.Conv2d(in_channels if i ==0 else out_channels, out_channels, stride = 1)
+                for i in range(num_layers)
+            ]
+        )
+
+        self.down_sample_conv = nn.Conv2d(out_channels, out_channels,
+                                          4, 2, 1) if self.is_down_sample else nn.Identity()
+    def forward(self, x, t_emb = None):
+        out = x
+        for i in range(self.num_layers):
+            # Resnet block of Unet
+            resnet_input = out
+            out = self.resnet_conv_first[i](out)
+            if self.t_emb_dim is not None:
+                out = out + self.t_emb_layers[i](t_emb)[:, :, None, None]
+            out = self.resnet_conv_second[i](out)
+            out = out + self.residual_input_conv[i](resnet_input)
+            
+            if self.attn:
+                # Attention block of Unet
+                batch_size, channels, h, w = out.shape
+                in_attn = out.reshape(batch_size, channels, h * w)
+                in_attn = self.attention_norms[i](in_attn)
+                in_attn = in_attn.transpose(1, 2)
+                out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
+                out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
+                out = out + out_attn
+            
+        # Downsample
+        out = self.down_sample_conv(out)
+        return out
+
+# TODO : Implement the MidBlock Class UNET
+
+# TODO : Implement the UpBlock Class UNET
