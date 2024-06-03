@@ -1,5 +1,5 @@
 dataset_params:
-  im_path: need to fill this out
+  im_path: ## we will get this from kaggle dataset
   im_channels : 1
   im_size : 28
   name: 'IAM Handwriting Database'
