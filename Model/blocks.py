@@ -24,12 +24,14 @@ def get_time_embedding(time_steps, temb_dim):
 
 class DownBlock(nn.Module):
     def __init__(self, in_channels, out_channels, norm_channels, num_heads,
-                     t_emb_dim, is_down_sample, num_layers, is_attn):
+                     t_emb_dim, is_down_sample, num_layers, is_attn, cross_attn = False, context_dim = None):
         super().__init__()
         self.t_emb_dim = t_emb_dim
         self.num_layers = num_layers
         self.is_down_sample = is_down_sample
         self.is_attn = is_attn
+        self.cross_attn = cross_attn
+        self.context_dim = context_dim
         
         # Resenet Block
         self.resnet_block_first = nn.ModuleList(
@@ -83,6 +85,9 @@ class DownBlock(nn.Module):
                     for _ in range(num_layers)
                 ]
             )
+        
+        # TODO : Cross Attention to feed in the conditional informatinal to Diffusion Model
+
         # Downsample Block
         self.residual_input_conv = nn.ModuleList(
             [
@@ -116,6 +121,8 @@ class DownBlock(nn.Module):
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
                 out = out + out_attn
             
+            # Similarily need to add the Cross Attention Functionality to the model
+            
         # Downsample
         out = self.down_sample_conv(out)
         return out
@@ -131,10 +138,13 @@ class MidBlock(nn.Module):
     3. Resnet block with time embedding
     """
     
-    def __init__(self, in_channels, out_channels, t_emb_dim, num_heads, num_layers, norm_channels):
+    def __init__(self, in_channels, out_channels, t_emb_dim, 
+                 num_heads, num_layers, norm_channels, cross_attn= False, context_dim = None):
         super().__init__()
         self.num_layers = num_layers
         self.t_emb_dim = t_emb_dim
+        self.cross_attn = cross_attn
+        self.context_dim = context_dim
         self.resnet_conv_first = nn.ModuleList(
             [
                 nn.Sequential(
@@ -203,7 +213,8 @@ class MidBlock(nn.Module):
             out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
             out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
             out = out + out_attn
-                
+
+            # TODO Adding Cross Attention in the blocks    
             
             # Resnet Block
             resnet_input = out
@@ -228,11 +239,14 @@ class UpBlock(nn.Module):
     """
     
     def __init__(self, in_channels, out_channels, t_emb_dim,
-                 up_sample, num_heads, num_layers, attn, norm_channels):
+                 up_sample, num_heads, num_layers, attn, norm_channels,
+                 cross_attn=False, context_dim = None):
         super().__init__()
         self.num_layers = num_layers
         self.up_sample = up_sample
         self.t_emb_dim = t_emb_dim
+        self.cross_attn = cross_attn
+        self.context_dim = context_dim
         self.attn = attn
         self.resnet_conv_first = nn.ModuleList(
             [
@@ -279,7 +293,9 @@ class UpBlock(nn.Module):
                     for _ in range(num_layers)
                 ]
             )
-            
+        
+        # TODO need to add cross Attention as above
+
         self.residual_input_conv = nn.ModuleList(
             [
                 nn.Conv2d(in_channels if i == 0 else out_channels, out_channels, kernel_size=1)
@@ -317,4 +333,5 @@ class UpBlock(nn.Module):
                 out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
                 out = out + out_attn
+            # TODO need to add cross attnetion as above
         return out
