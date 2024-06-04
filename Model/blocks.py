@@ -20,7 +20,7 @@ def get_time_embedding(time_steps, temb_dim):
     return t_emb
 
 
-# TODO : Implement the DownBlock Class UNET
+# TODO : Complete the CrossAttention part of the DownBlock
 
 class DownBlock(nn.Module):
     def __init__(self, in_channels, out_channels, norm_channels, num_heads,
@@ -120,7 +120,7 @@ class DownBlock(nn.Module):
         out = self.down_sample_conv(out)
         return out
 
-# TODO : Implement the MidBlock Class UNET
+# TODO : Complete the CrossAttention part of the MidBlock
 
 class MidBlock(nn.Module):
     r"""
@@ -215,7 +215,7 @@ class MidBlock(nn.Module):
         
         return out
 
-# TODO : Implement the UpBlock Class UNET
+# TODO : Complete the CrossAttention part of the UpBlock
 
 class UpBlock(nn.Module):
     r"""

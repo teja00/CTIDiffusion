@@ -4,6 +4,9 @@ from Model.blocks import get_time_embedding
 from Model.blocks import DownBlock, MidBlock, UpBlock
 
 
+# This is just the DDPM Implementation of the UNET
+# TODO we need to add the CrossAttention Part of the UNET
+
 class Unet(nn.Module):
     r"""
     Unet model comprising
