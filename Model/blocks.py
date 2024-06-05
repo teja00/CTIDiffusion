@@ -20,7 +20,7 @@ def get_time_embedding(time_steps, temb_dim):
     return t_emb
 
 
-# TODO : Complete the CrossAttention part of the DownBlock
+# TODO Cross Attention [image and Style need to add]
 
 class DownBlock(nn.Module):
     def __init__(self, in_channels, out_channels, norm_channels, num_heads,
@@ -86,9 +86,7 @@ class DownBlock(nn.Module):
                 ]
             )
         
-        # TODO : Cross Attention to feed in the conditional informatinal to Diffusion Model
-
-        # adding the Text Cross Attention 
+        # TODO Cross Attention [image and Style need to add]
 
         if self.cross_attn:
             assert context_dim is not None, "Context Dimension must be passed for cross attention"
@@ -138,7 +136,7 @@ class DownBlock(nn.Module):
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
                 out = out + out_attn
             
-            # Similarily need to add the Cross Attention Functionality to the model
+            # TODO Cross Attention [image and Style need to add]
             if self.cross_attn:
                 assert context is not None, "context cannot be None if cross attention layers are used"
                 batch_size, channels, h, w = out.shape
@@ -155,7 +153,7 @@ class DownBlock(nn.Module):
         out = self.down_sample_conv(out)
         return out
 
-# TODO : Complete the CrossAttention part of the MidBlock
+# TODO Cross Attention [image and Style need to add]
 
 class MidBlock(nn.Module):
     r"""
@@ -209,6 +207,7 @@ class MidBlock(nn.Module):
              for _ in range(num_layers)]
         )
 
+        # TODO Cross Attention [image and Style need to add]
         if self.cross_attn:
             assert context_dim is not None, "Context Dimension must be passed for cross attention"
             self.cross_attention_norms = nn.ModuleList(
@@ -257,7 +256,7 @@ class MidBlock(nn.Module):
             out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
             out = out + out_attn
 
-            # TODO Adding Cross Attention in the blocks 
+            # TODO Cross Attention [image and Style need to add]
             if self.cross_attn:
                 assert context is not None, "context cannot be None if cross attention layers are used"
                 batch_size, channels, h, w = out.shape
@@ -348,7 +347,7 @@ class UpBlock(nn.Module):
                 ]
             )
         
-        # TODO need to add cross Attention as above
+        # TODO Cross Attention [image and Style need to add]
         if self.cross_attn:
             assert context_dim is not None, "Context Dimension must be passed for cross attention"
             self.cross_attention_norms = nn.ModuleList(
@@ -401,7 +400,8 @@ class UpBlock(nn.Module):
                 out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
                 out = out + out_attn
-            # TODO need to add cross attnetion as above
+                
+            # TODO Cross Attention [image and Style need to add]
             if self.cross_attn:
                 assert context is not None, "context cannot be None if cross attention layers are used"
                 batch_size, channels, h, w = out.shape
