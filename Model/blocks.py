@@ -88,6 +88,23 @@ class DownBlock(nn.Module):
         
         # TODO : Cross Attention to feed in the conditional informatinal to Diffusion Model
 
+        # adding the Text Cross Attention 
+
+        if self.cross_attn:
+            assert context_dim is not None, "Context Dimension must be passed for cross attention"
+            self.cross_attention_norms = nn.ModuleList(
+                [nn.GroupNorm(norm_channels, out_channels)
+                 for _ in range(num_layers)]
+            )
+            self.cross_attentions = nn.ModuleList(
+                [nn.MultiheadAttention(out_channels, num_heads, batch_first=True)
+                 for _ in range(num_layers)]
+            )
+            self.context_proj = nn.ModuleList(
+                [nn.Linear(context_dim, out_channels)
+                 for _ in range(num_layers)]
+            )
+
         # Downsample Block
         self.residual_input_conv = nn.ModuleList(
             [
@@ -98,7 +115,7 @@ class DownBlock(nn.Module):
 
         self.down_sample_conv = nn.Conv2d(out_channels, out_channels,
                                           4, 2, 1) if self.is_down_sample else nn.Identity()
-    def forward(self, x, t_emb = None):
+    def forward(self, x, t_emb = None, context = None):
         out = x
         for i in range(self.num_layers):
             # Resnet Block
@@ -122,7 +139,18 @@ class DownBlock(nn.Module):
                 out = out + out_attn
             
             # Similarily need to add the Cross Attention Functionality to the model
-            
+            if self.cross_attn:
+                assert context is not None, "context cannot be None if cross attention layers are used"
+                batch_size, channels, h, w = out.shape
+                in_attn = out.reshape(batch_size, channels, h * w)
+                in_attn = self.cross_attention_norms[i](in_attn)
+                in_attn = in_attn.transpose(1, 2)
+                assert context.shape[0] == x.shape[0] and context.shape[-1] == self.context_dim
+                context_proj = self.context_proj[i](context)
+                out_attn, _ = self.cross_attentions[i](in_attn, context_proj, context_proj)
+                out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
+                out = out + out_attn
+
         # Downsample
         out = self.down_sample_conv(out)
         return out
@@ -180,6 +208,21 @@ class MidBlock(nn.Module):
             [nn.GroupNorm(norm_channels, out_channels)
              for _ in range(num_layers)]
         )
+
+        if self.cross_attn:
+            assert context_dim is not None, "Context Dimension must be passed for cross attention"
+            self.cross_attention_norms = nn.ModuleList(
+                [nn.GroupNorm(norm_channels, out_channels)
+                 for _ in range(num_layers)]
+            )
+            self.cross_attentions = nn.ModuleList(
+                [nn.MultiheadAttention(out_channels, num_heads, batch_first=True)
+                 for _ in range(num_layers)]
+            )
+            self.context_proj = nn.ModuleList(
+                [nn.Linear(context_dim, out_channels)
+                 for _ in range(num_layers)]
+            )
         
         self.attentions = nn.ModuleList(
             [nn.MultiheadAttention(out_channels, num_heads, batch_first=True)
@@ -214,7 +257,18 @@ class MidBlock(nn.Module):
             out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
             out = out + out_attn
 
-            # TODO Adding Cross Attention in the blocks    
+            # TODO Adding Cross Attention in the blocks 
+            if self.cross_attn:
+                assert context is not None, "context cannot be None if cross attention layers are used"
+                batch_size, channels, h, w = out.shape
+                in_attn = out.reshape(batch_size, channels, h * w)
+                in_attn = self.cross_attention_norms[i](in_attn)
+                in_attn = in_attn.transpose(1, 2)
+                assert context.shape[0] == x.shape[0] and context.shape[-1] == self.context_dim
+                context_proj = self.context_proj[i](context)
+                out_attn, _ = self.cross_attentions[i](in_attn, context_proj, context_proj)
+                out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
+                out = out + out_attn   
             
             # Resnet Block
             resnet_input = out
@@ -295,6 +349,20 @@ class UpBlock(nn.Module):
             )
         
         # TODO need to add cross Attention as above
+        if self.cross_attn:
+            assert context_dim is not None, "Context Dimension must be passed for cross attention"
+            self.cross_attention_norms = nn.ModuleList(
+                [nn.GroupNorm(norm_channels, out_channels)
+                 for _ in range(num_layers)]
+            )
+            self.cross_attentions = nn.ModuleList(
+                [nn.MultiheadAttention(out_channels, num_heads, batch_first=True)
+                 for _ in range(num_layers)]
+            )
+            self.context_proj = nn.ModuleList(
+                [nn.Linear(context_dim, out_channels)
+                 for _ in range(num_layers)]
+            )
 
         self.residual_input_conv = nn.ModuleList(
             [
@@ -306,7 +374,7 @@ class UpBlock(nn.Module):
                                                  4, 2, 1) \
             if self.up_sample else nn.Identity()
     
-    def forward(self, x, out_down=None, t_emb=None):
+    def forward(self, x, out_down=None, t_emb=None,context = None):
         # Upsample
         x = self.up_sample_conv(x)
         
@@ -334,4 +402,18 @@ class UpBlock(nn.Module):
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
                 out = out + out_attn
             # TODO need to add cross attnetion as above
+            if self.cross_attn:
+                assert context is not None, "context cannot be None if cross attention layers are used"
+                batch_size, channels, h, w = out.shape
+                in_attn = out.reshape(batch_size, channels, h * w)
+                in_attn = self.cross_attention_norms[i](in_attn)
+                in_attn = in_attn.transpose(1, 2)
+                assert len(context.shape) == 3, \
+                    "Context shape does not match B,_,CONTEXT_DIM"
+                assert context.shape[0] == x.shape[0] and context.shape[-1] == self.context_dim,\
+                    "Context shape does not match B,_,CONTEXT_DIM"
+                context_proj = self.context_proj[i](context)
+                out_attn, _ = self.cross_attentions[i](in_attn, context_proj, context_proj)
+                out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
+                out = out + out_attn
         return out
