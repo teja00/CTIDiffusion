@@ -20,11 +20,11 @@ def get_time_embedding(time_steps, temb_dim):
     return t_emb
 
 
-# TODO Cross Attention [image and Style need to add]
 
 class DownBlock(nn.Module):
     def __init__(self, in_channels, out_channels, norm_channels, num_heads,
-                     t_emb_dim, is_down_sample, num_layers, is_attn, cross_attn = False, context_dim = None):
+                     t_emb_dim, is_down_sample, num_layers, is_attn, 
+                     cross_attn = False, context_dim = None, context_dim_image=None):
         super().__init__()
         self.t_emb_dim = t_emb_dim
         self.num_layers = num_layers
@@ -86,7 +86,6 @@ class DownBlock(nn.Module):
                 ]
             )
         
-        # TODO Cross Attention [image and Style need to add]
 
         if self.cross_attn:
             assert context_dim is not None, "Context Dimension must be passed for cross attention"
@@ -94,11 +93,22 @@ class DownBlock(nn.Module):
                 [nn.GroupNorm(norm_channels, out_channels)
                  for _ in range(num_layers)]
             )
+            # This can be used for all the Three modules Text, Image and Style 
+            # since we are changing the context_dim of each to out channels
             self.cross_attentions = nn.ModuleList(
                 [nn.MultiheadAttention(out_channels, num_heads, batch_first=True)
                  for _ in range(num_layers)]
             )
+            # Context Projection for Text, Image and Style in that order below
             self.context_proj = nn.ModuleList(
+                [nn.Linear(context_dim, out_channels)
+                 for _ in range(num_layers)]
+            )
+            self.context_proj_image = nn.ModuleList(
+                [nn.Linear(context_dim_image, out_channels)
+                 for _ in range(num_layers)]
+            )
+            self.context_proj_style = nn.ModuleList(
                 [nn.Linear(context_dim, out_channels)
                  for _ in range(num_layers)]
             )
@@ -113,7 +123,7 @@ class DownBlock(nn.Module):
 
         self.down_sample_conv = nn.Conv2d(out_channels, out_channels,
                                           4, 2, 1) if self.is_down_sample else nn.Identity()
-    def forward(self, x, t_emb = None, context = None):
+    def forward(self, x, t_emb = None, context = None,context_image = None, context_style = None):
         out = x
         for i in range(self.num_layers):
             # Resnet Block
@@ -145,9 +155,15 @@ class DownBlock(nn.Module):
                 in_attn = in_attn.transpose(1, 2)
                 assert context.shape[0] == x.shape[0] and context.shape[-1] == self.context_dim
                 context_proj = self.context_proj[i](context)
+                context_proj_image = self.context_proj_image[i](context_image)
+                context_proj_style = self.context_proj_style[i](context_style)
                 out_attn, _ = self.cross_attentions[i](in_attn, context_proj, context_proj)
+                out_attn_image, _ = self.cross_attentions[i](in_attn, context_proj_image, context_proj_image)
+                out_attn_style, _ = self.cross_attentions[i](in_attn, context_proj_style, context_proj_style)
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
-                out = out + out_attn
+                out_attn_image = out_attn_image.transpose(1, 2).reshape(batch_size, channels, h, w)
+                out_attn_style = out_attn_style.transpose(1, 2).reshape(batch_size, channels, h, w)
+                out = out + out_attn + out_attn_image + out_attn_style
 
         # Downsample
         out = self.down_sample_conv(out)
@@ -400,7 +416,7 @@ class UpBlock(nn.Module):
                 out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
                 out = out + out_attn
-                
+
             # TODO Cross Attention [image and Style need to add]
             if self.cross_attn:
                 assert context is not None, "context cannot be None if cross attention layers are used"
