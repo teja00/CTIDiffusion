@@ -322,7 +322,7 @@ class UpBlock(nn.Module):
     
     def __init__(self, in_channels, out_channels, t_emb_dim,
                  up_sample, num_heads, num_layers, attn, norm_channels,
-                 cross_attn=False, context_dim = None):
+                 cross_attn=False, context_dim = None, context_dim_image = None):
         super().__init__()
         self.num_layers = num_layers
         self.up_sample = up_sample
@@ -391,6 +391,14 @@ class UpBlock(nn.Module):
                 [nn.Linear(context_dim, out_channels)
                  for _ in range(num_layers)]
             )
+            self.context_proj_image = nn.ModuleList(
+                [nn.Linear(context_dim_image, out_channels)
+                 for _ in range(num_layers)]
+            )
+            self.context_proj_style = nn.ModuleList(
+                [nn.Linear(context_dim, out_channels)
+                 for _ in range(num_layers)]
+            )
 
         self.residual_input_conv = nn.ModuleList(
             [
@@ -402,7 +410,8 @@ class UpBlock(nn.Module):
                                                  4, 2, 1) \
             if self.up_sample else nn.Identity()
     
-    def forward(self, x, out_down=None, t_emb=None,context = None):
+    def forward(self, x, out_down=None, t_emb=None,
+                context = None, context_image = None, context_style = None):
         # Upsample
         x = self.up_sample_conv(x)
         
@@ -442,7 +451,13 @@ class UpBlock(nn.Module):
                 assert context.shape[0] == x.shape[0] and context.shape[-1] == self.context_dim,\
                     "Context shape does not match B,_,CONTEXT_DIM"
                 context_proj = self.context_proj[i](context)
+                context_proj_image = self.context_proj_image[i](context_image)
+                context_proj_style = self.context_proj_style[i](context_style)
                 out_attn, _ = self.cross_attentions[i](in_attn, context_proj, context_proj)
+                out_attn_image, _ = self.cross_attentions[i](in_attn, context_proj_image, context_proj_image)
+                out_att_style, _ = self.cross_attentions[i](in_attn, context_proj_style, context_proj_style)
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
-                out = out + out_attn
+                out_attn_image = out_attn_image.transpose(1, 2).reshape(batch_size, channels, h, w)
+                out_att_style = out_att_style.transpose(1, 2).reshape(batch_size, channels, h, w)
+                out = out + out_attn + out_attn_image + out_att_style
         return out
