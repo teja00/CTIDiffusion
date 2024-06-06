@@ -169,7 +169,6 @@ class DownBlock(nn.Module):
         out = self.down_sample_conv(out)
         return out
 
-# TODO Cross Attention [image and Style need to add]
 
 class MidBlock(nn.Module):
     r"""
@@ -181,7 +180,8 @@ class MidBlock(nn.Module):
     """
     
     def __init__(self, in_channels, out_channels, t_emb_dim, 
-                 num_heads, num_layers, norm_channels, cross_attn= False, context_dim = None):
+                 num_heads, num_layers, norm_channels, 
+                 cross_attn= False, context_dim = None, context_dim_image = None):
         super().__init__()
         self.num_layers = num_layers
         self.t_emb_dim = t_emb_dim
@@ -223,7 +223,6 @@ class MidBlock(nn.Module):
              for _ in range(num_layers)]
         )
 
-        # TODO Cross Attention [image and Style need to add]
         if self.cross_attn:
             assert context_dim is not None, "Context Dimension must be passed for cross attention"
             self.cross_attention_norms = nn.ModuleList(
@@ -238,7 +237,15 @@ class MidBlock(nn.Module):
                 [nn.Linear(context_dim, out_channels)
                  for _ in range(num_layers)]
             )
-        
+            self.context_proj_image = nn.ModuleList(
+                [nn.Linear(context_dim_image, out_channels)
+                 for _ in range(num_layers)]
+            )
+            self.context_proj_style = nn.ModuleList(
+                [nn.Linear(context_dim, out_channels)
+                 for _ in range(num_layers)]
+            )
+    
         self.attentions = nn.ModuleList(
             [nn.MultiheadAttention(out_channels, num_heads, batch_first=True)
              for _ in range(num_layers)]
@@ -251,7 +258,8 @@ class MidBlock(nn.Module):
             ]
         )
     
-    def forward(self, x, t_emb=None, context=None):
+    def forward(self, x, t_emb=None, 
+                context=None, context_image = None, context_style = None):
         out = x
         
         # First resnet block
@@ -272,7 +280,6 @@ class MidBlock(nn.Module):
             out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
             out = out + out_attn
 
-            # TODO Cross Attention [image and Style need to add]
             if self.cross_attn:
                 assert context is not None, "context cannot be None if cross attention layers are used"
                 batch_size, channels, h, w = out.shape
@@ -281,9 +288,15 @@ class MidBlock(nn.Module):
                 in_attn = in_attn.transpose(1, 2)
                 assert context.shape[0] == x.shape[0] and context.shape[-1] == self.context_dim
                 context_proj = self.context_proj[i](context)
+                context_proj_image = self.context_proj_image[i](context_image)
+                context_proj_style = self.context_proj_style[i](context_style)
                 out_attn, _ = self.cross_attentions[i](in_attn, context_proj, context_proj)
+                out_attn_image, _ = self.cross_attentions[i](in_attn, context_proj_image, context_proj_image)
+                out_attn_style , _ = self.cross_attentions[i](in_attn, context_proj_style, context_proj_style)
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
-                out = out + out_attn   
+                out_attn_image = out_attn_image.transpose(1, 2).reshape(batch_size, channels, h, w)
+                out_attn_style = out_attn_style.transpose(1, 2).reshape(batch_size, channels, h, w)
+                out = out + out_attn + out_attn_image + out_attn_style
             
             # Resnet Block
             resnet_input = out
