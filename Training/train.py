@@ -1,4 +1,6 @@
+from wsgiref import validate
 import torch
+from PIL import Image
 import yaml
 import argparse
 import os
@@ -9,9 +11,13 @@ from torch.utils.data import DataLoader
 from Model.Unet import Unet
 from Model.NoiseScheduler import NoiseScheduler
 from Utils.config_utils import get_config_value, validate_image_config, validate_text_config
+from Utils.diffusion_utils import drop_image_condition, drop_text_condition
+from Utils.pre_trained_utils import get_text_representation, get_tokenizer_and_model, get_image_model_processor, get_image_representation
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+
+# TODO Style component for training we need to do
 
 def train(args):
     # Read the config file #
@@ -37,7 +43,7 @@ def train(args):
     text_tokenizer = None
     text_model = None
     empty_text_embed = None
-    emtpy_style_embed = None
+    # emtpy_style_embed = None
     empty_image_embed = None
     condition_types = []
     condition_config = get_config_value(diffusion_model_config, key='condition_config', default_value=None)
@@ -47,9 +53,14 @@ def train(args):
         if ('text' or 'style') in condition_types:
             validate_text_config(condition_config)
             # TODO: we need to create a text model as below
+            text_tokenizer, text_model = get_tokenizer_and_model(condition_config['text_condition_config']['text_embed_model'], device = device)
+            empty_text_embed = get_text_representation([''], text_tokenizer, text_model, device)
         if 'image' in condition_types:
             validate_image_config(condition_config)
             # TODO: we need to create an image model as below
+            image_model, image_processor = get_image_model_processor(condition_config['image_condition_config']['image_embed_model'], device = device)
+            empty_image = Image.new('RGB', (dataset_config['im_size'], dataset_config['im_size']), color = (0, 0, 0))
+            empty_image_embed = get_image_representation(empty_image,image_model, image_processor, device)
 
 
     # TODO: we need to create a dataset Class as below
@@ -84,9 +95,31 @@ def train(args):
 
     for epoch_idx in range(num_epochs):
         losses = []
-        for im in tqdm(data_loader):
+        for data in tqdm(data_loader):
             optimizer.zero_grad()
+            cond_input = None
+            if condition_config is not None:
+                im, cond_input = data
+            else:
+                im = data
             im = im.float().to(device)
+
+            if 'text' in condition_types:
+                with torch.no_grad():
+                    assert 'text' in cond_input, "Text condition missing in cond_input"
+                    validate_text_config(condition_config=condition_config)
+                    text_condition = get_text_representation(cond_input['text'], text_tokenizer, text_model, device)
+                    text_drop_prob = get_config_value(condition_config['text_condition_config'], 'cond_drop_prob', 0.0)
+                    text_condition = drop_text_condition(text_condition, im, empty_text_embed, text_drop_prob)
+                    cond_input['text'] = text_condition
+            if  'image' in condition_types:
+                with torch.no_grad():
+                    assert 'image' in cond_input, "Image condition missing in cond_input"
+                    validate_image_config(condition_config=condition_config)
+                    image_condition = get_image_representation(cond_input['image'], image_model, image_processor, device)
+                    image_drop_prob = get_config_value(condition_config['image_condition_config'], 'cond_drop_prob', 0.0)
+                    image_condition = drop_image_condition(image_condition, im, empty_image_embed, image_drop_prob)
+                    cond_input['image'] = image_condition
              
             # Sample random noise
             noise = torch.randn_like(im).to(device)
@@ -96,7 +129,7 @@ def train(args):
             
             # Add noise to images according to timestep
             noisy_im = scheduler.add_noise(im, noise, t)
-            noise_pred = model(noisy_im, t)
+            noise_pred = model(noisy_im, t, cond_input=cond_input)
             
             loss = criterion(noise_pred, noise)
             losses.append(loss.item())

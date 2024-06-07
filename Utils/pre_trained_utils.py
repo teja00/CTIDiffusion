@@ -17,7 +17,7 @@ def get_tokenizer_and_model(model_type, device, eval_mode=True):
         text_model.eval()
     return text_tokenizer, text_model
 
-def get_image_mode_processor(model_type, device, eval_model=True):
+def get_image_model_processor(model_type, device, eval_model=True):
     if model_type == 'clip':
         image_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
         image_processor = AutoProcessor.from_pretrained("openai/clip-vit-base-patch32")
@@ -61,9 +61,9 @@ def get_text_representation(text, text_tokenizer, text_model, device,
     return text_embed
 
 def get_image_representation(image, image_model, image_processor, device):
-    token_input = inputs = image_processor(images=image, return_tensors="pt")
+    token_input = image_processor(images=image, return_tensors="pt")
     with torch.no_grad():
-        image_features = image_model.get_image_features(**token_input)
+        image_features = image_model.get_image_features(**token_input).to(device)
 
     return image_features
     
