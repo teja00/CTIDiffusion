@@ -8,6 +8,7 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 from Model.Unet import Unet
 from Model.NoiseScheduler import NoiseScheduler
+from Utils.config_utils import get_config_value, validate_image_config, validate_text_config
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -33,6 +34,23 @@ def train(args):
                                      beta_start=diffusion_config['beta_start'],
                                      beta_end=diffusion_config['beta_end'])
     
+    text_tokenizer = None
+    text_model = None
+    empty_text_embed = None
+    emtpy_style_embed = None
+    empty_image_embed = None
+    condition_types = []
+    condition_config = get_config_value(diffusion_model_config, key='condition_config', default_value=None)
+    if condition_config is not None:
+        assert 'condition_types' in condition_config, "condition_types missing in condition_config"
+        condition_types = condition_config['condition_types']
+        if ('text' or 'style') in condition_types:
+            validate_text_config(condition_config)
+            # TODO: we need to create a text model as below
+        if 'image' in condition_types:
+            validate_image_config(condition_config)
+            # TODO: we need to create an image model as below
+
 
     # TODO: we need to create a dataset Class as below
     # im_dataset_cls = {
