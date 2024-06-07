@@ -1,6 +1,6 @@
 dataset_params:
   im_path: ## reverting back to the original commit
-  im_channels : # we need to change this value based on the imahe size 
+  im_channels : 1 
   im_size : 28
   name: 'IAM Handwriting Database'
 
