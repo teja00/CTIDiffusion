@@ -11,6 +11,7 @@ from Model.NoiseScheduler import NoiseScheduler
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+## TODO Need to convert the sample to from DDPM to Conditional DDPM by adding the condition embeddings
 
 def sample(model, scheduler, train_config, diffusion_model_config,
                autoencoder_model_config, diffusion_config, dataset_config):
