@@ -1,24 +1,8 @@
-# TODO We need to add the drop out condition of the diffusion model 
-# TODO Drop Text condition, Drop Image condition, Drop Style condition
-
 from cgitb import text
 import pickle
 import glob
 import os
 import torch
-
-def load_latents(latent_path):
-    r"""
-    Simple utility to save latents to speed up ldm training
-    :param latent_path:
-    :return:
-    """
-    latent_maps = {}
-    for fname in glob.glob(os.path.join(latent_path, '*.pkl')):
-        s = pickle.load(open(fname, 'rb'))
-        for k, v in s.items():
-            latent_maps[k] = v[0]
-    return latent_maps
 
 
 def drop_text_condition(text_embed, im, empty_text_embed,text_drop_prob):
