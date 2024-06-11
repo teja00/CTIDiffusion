@@ -51,7 +51,7 @@ class IAMDataset(Dataset):
                 image_name_folder_1 = image_name.split('-')[0]
                 image_name_folder_2 = image_name_folder_1 + '-' + image_name.split('-')[1] 
                 image_final_folder = image_name_folder_1 + '/' + image_name_folder_2 + '/' + image_name
-                ims.append(os.path.join(im_path, 'iam_words/words/{}.{}'.format(image_final_folder, self.im_ext)))
+                ims.append(os.path.join(im_path, 'words/{}.{}'.format(image_final_folder, self.im_ext)))
         if 'text' in self.condition_types:
             assert len(texts) == len(ims), "Condition Type Text but could not find captions for all images"
         print('Found {} images'.format(len(ims)))
@@ -79,7 +79,7 @@ class IAMDataset(Dataset):
     
         # Convert input to -1 to 1 range.
         im_tensor = (2 * im_tensor) - 1
-        
+
         if 'image' in self.condition_types:
             cond_inputs['image'] = im
         if len(self.condition_types) == 0:

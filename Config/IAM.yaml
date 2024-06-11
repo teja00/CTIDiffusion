@@ -1,8 +1,8 @@
 dataset_params:
-  im_path: ## reverting back to the original commit
-  im_channels : 1 
-  im_size : 28
-  name: 'IAM Handwriting Database'
+  im_path: '/iam_words'
+  im_channels : 3 # need to check on this
+  im_size : 256 # need to check on this
+  name: 'IAMHandwriting'
 
 diffusion_params:
   num_timesteps : 1000

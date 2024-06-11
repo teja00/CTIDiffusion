@@ -8,6 +8,7 @@ import numpy as np
 from tqdm import tqdm
 from torch.optim import Adam
 from torch.utils.data import DataLoader
+from Utils.iam_dataset import IAMDataset
 from Model.Unet import Unet
 from Model.NoiseScheduler import NoiseScheduler
 from Utils.config_utils import get_config_value, validate_image_config, validate_text_config
@@ -64,19 +65,15 @@ def train(args):
 
 
     # TODO: we need to create a dataset Class as below
-    # im_dataset_cls = {
-    #     'IAM': IAM ,
-    #     'celebhq': CelebDataset,
-    # }.get(dataset_config['name'])
+    im_dataset_cls = {
+        'IAMHandwriting': IAMDataset ,
+    }.get(dataset_config['name'])
     
-    # im_dataset = im_dataset_cls(split='train',
-    #                             im_path=dataset_config['im_path'],
-    #                             im_size=dataset_config['im_size'],
-    #                             im_channels=dataset_config['im_channels'],
-    #                             use_latents=True,
-    #                             latent_path=os.path.join(train_config['task_name'],
-    #                                                      train_config['vqvae_latent_dir_name'])
-    #                             )
+    im_dataset = im_dataset_cls(split='train',
+                                im_path=dataset_config['im_path'],
+                                im_size=dataset_config['im_size'],
+                                im_channels=dataset_config['im_channels'],
+                                )
     im_dataset = None
     data_loader = DataLoader(im_dataset,
                              batch_size=train_config['ldm_batch_size'],
