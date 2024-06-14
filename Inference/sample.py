@@ -16,7 +16,7 @@ from Utils.pre_trained_utils import get_image_model_processor, get_text_represen
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-## TODO Need to convert the sample to from DDPM to Conditional DDPM by adding the condition embeddings
+## TODO Need to remove style code 
 
 def sample(model, scheduler, train_config, diffusion_model_config,
                autoencoder_model_config, diffusion_config, dataset_config, text_tokenizer, text_model, image_model, image_processor):
