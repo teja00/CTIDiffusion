@@ -37,7 +37,7 @@ class Unet(nn.Module):
 
         self.text_cond = False
         self.image_cond = False
-        self.style_cond = False
+        # self.style_cond = False
         self.text_embed_dim = None
         self.image_embed_dim = None
         self.condition_config = get_config_value(model_config, 'condition_config', None)
@@ -46,14 +46,14 @@ class Unet(nn.Module):
             condition_types = self.condition_config['condition_types']
             if 'text' in condition_types:
                 self.text_cond = True
-                self.style_cond = True
+                # self.style_cond = True
                 self.text_embed_dim = self.condition_config['text_condition_config']['text_embed_dim']
             if 'image' in condition_types:
                 self.image_cond = True
                 self.image_embed_dim = self.condition_config['image_condition_config']['image_embed_dim']
 
         self.conv_in = nn.Conv2d(im_channels, self.down_channels[0], kernel_size=3, padding=1)
-        self.cond = self.text_cond or self.image_cond or self.style_cond  
+        self.cond = self.text_cond or self.image_cond  
         # Initial projection from sinusoidal time embedding
         self.t_proj = nn.Sequential(
             nn.Linear(self.t_emb_dim, self.t_emb_dim),
@@ -114,25 +114,29 @@ class Unet(nn.Module):
         if self.image_cond:
             assert 'image' in cond_input, "Image condition missing"
             context_hidden_states_image = cond_input['image']
-        if self.style_cond:
-            assert 'style' in cond_input, "Style condition missing"
-            context_hidden_states_style = cond_input['style']
+        # if self.style_cond:
+        #     assert 'style' in cond_input, "Style condition missing"
+        #     context_hidden_states_style = cond_input['style']
         
         down_outs = []
         
         for idx, down in enumerate(self.downs):
             down_outs.append(out)
-            out = down(out, t_emb, context_hidden_states, context_hidden_states_image, context_hidden_states_style)
+            # out = down(out, t_emb, context_hidden_states, context_hidden_states_image, context_hidden_states_style)
+            out = down(out, t_emb, context_hidden_states, context_hidden_states_image)
         # down_outs  [B x C1 x H x W, B x C2 x H/2 x W/2, B x C3 x H/4 x W/4]
         # out B x C4 x H/4 x W/4
         
         for mid in self.mids:
-            out = mid(out, t_emb, context_hidden_states, context_hidden_states_image, context_hidden_states_style)
+            # out = mid(out, t_emb, context_hidden_states, context_hidden_states_image, context_hidden_states_style)
+            out = mid(out, t_emb, context_hidden_states, context_hidden_states_image)
+
         # out B x C3 x H/4 x W/4
         
         for up in self.ups:
             down_out = down_outs.pop()
-            out = up(out, down_out, t_emb, context_hidden_states, context_hidden_states_image, context_hidden_states_style)
+            # out = up(out, down_out, t_emb, context_hidden_states, context_hidden_states_image, context_hidden_states_style)
+            out = up(out, down_out, t_emb, context_hidden_states, context_hidden_states_image)
             # out [B x C2 x H/4 x W/4, B x C1 x H/2 x W/2, B x 16 x H x W]
         out = self.norm_out(out)
         out = nn.SiLU()(out)

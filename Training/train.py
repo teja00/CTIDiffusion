@@ -51,7 +51,7 @@ def train(args):
     if condition_config is not None:
         assert 'condition_types' in condition_config, "condition_types missing in condition_config"
         condition_types = condition_config['condition_types']
-        if ('text' or 'style') in condition_types:
+        if ('text') in condition_types:
             validate_text_config(condition_config)
             # TODO: we need to create a text model as below
             text_tokenizer, text_model = get_tokenizer_and_model(condition_config['text_condition_config']['text_embed_model'], device = device)

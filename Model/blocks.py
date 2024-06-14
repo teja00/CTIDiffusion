@@ -108,10 +108,10 @@ class DownBlock(nn.Module):
                 [nn.Linear(context_dim_image, out_channels)
                  for _ in range(num_layers)]
             )
-            self.context_proj_style = nn.ModuleList(
-                [nn.Linear(context_dim, out_channels)
-                 for _ in range(num_layers)]
-            )
+            # self.context_proj_style = nn.ModuleList(
+            #     [nn.Linear(context_dim, out_channels)
+            #      for _ in range(num_layers)]
+            # )
 
         # Downsample Block
         self.residual_input_conv = nn.ModuleList(
@@ -156,14 +156,15 @@ class DownBlock(nn.Module):
                 assert context.shape[0] == x.shape[0] and context.shape[-1] == self.context_dim
                 context_proj = self.context_proj[i](context)
                 context_proj_image = self.context_proj_image[i](context_image)
-                context_proj_style = self.context_proj_style[i](context_style)
+                # context_proj_style = self.context_proj_style[i](context_style)
                 out_attn, _ = self.cross_attentions[i](in_attn, context_proj, context_proj)
                 out_attn_image, _ = self.cross_attentions[i](in_attn, context_proj_image, context_proj_image)
-                out_attn_style, _ = self.cross_attentions[i](in_attn, context_proj_style, context_proj_style)
+                # out_attn_style, _ = self.cross_attentions[i](in_attn, context_proj_style, context_proj_style)
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
                 out_attn_image = out_attn_image.transpose(1, 2).reshape(batch_size, channels, h, w)
-                out_attn_style = out_attn_style.transpose(1, 2).reshape(batch_size, channels, h, w)
-                out = out + out_attn + out_attn_image + out_attn_style
+                # out_attn_style = out_attn_style.transpose(1, 2).reshape(batch_size, channels, h, w)
+                # out = out + out_attn + out_attn_image + out_attn_style
+                out = out + out_attn + out_attn_image 
 
         # Downsample
         out = self.down_sample_conv(out)
@@ -241,10 +242,10 @@ class MidBlock(nn.Module):
                 [nn.Linear(context_dim_image, out_channels)
                  for _ in range(num_layers)]
             )
-            self.context_proj_style = nn.ModuleList(
-                [nn.Linear(context_dim, out_channels)
-                 for _ in range(num_layers)]
-            )
+            # self.context_proj_style = nn.ModuleList(
+            #     [nn.Linear(context_dim, out_channels)
+            #      for _ in range(num_layers)]
+            # )
     
         self.attentions = nn.ModuleList(
             [nn.MultiheadAttention(out_channels, num_heads, batch_first=True)
@@ -289,14 +290,15 @@ class MidBlock(nn.Module):
                 assert context.shape[0] == x.shape[0] and context.shape[-1] == self.context_dim
                 context_proj = self.context_proj[i](context)
                 context_proj_image = self.context_proj_image[i](context_image)
-                context_proj_style = self.context_proj_style[i](context_style)
+                # context_proj_style = self.context_proj_style[i](context_style)
                 out_attn, _ = self.cross_attentions[i](in_attn, context_proj, context_proj)
                 out_attn_image, _ = self.cross_attentions[i](in_attn, context_proj_image, context_proj_image)
-                out_attn_style , _ = self.cross_attentions[i](in_attn, context_proj_style, context_proj_style)
+                # out_attn_style , _ = self.cross_attentions[i](in_attn, context_proj_style, context_proj_style)
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
                 out_attn_image = out_attn_image.transpose(1, 2).reshape(batch_size, channels, h, w)
-                out_attn_style = out_attn_style.transpose(1, 2).reshape(batch_size, channels, h, w)
-                out = out + out_attn + out_attn_image + out_attn_style
+                # out_attn_style = out_attn_style.transpose(1, 2).reshape(batch_size, channels, h, w)
+                # out = out + out_attn + out_attn_image + out_attn_style
+                out = out + out_attn + out_attn_image 
             
             # Resnet Block
             resnet_input = out
@@ -395,10 +397,10 @@ class UpBlock(nn.Module):
                 [nn.Linear(context_dim_image, out_channels)
                  for _ in range(num_layers)]
             )
-            self.context_proj_style = nn.ModuleList(
-                [nn.Linear(context_dim, out_channels)
-                 for _ in range(num_layers)]
-            )
+            # self.context_proj_style = nn.ModuleList(
+            #     [nn.Linear(context_dim, out_channels)
+            #      for _ in range(num_layers)]
+            # )
 
         self.residual_input_conv = nn.ModuleList(
             [
@@ -452,12 +454,13 @@ class UpBlock(nn.Module):
                     "Context shape does not match B,_,CONTEXT_DIM"
                 context_proj = self.context_proj[i](context)
                 context_proj_image = self.context_proj_image[i](context_image)
-                context_proj_style = self.context_proj_style[i](context_style)
+                # context_proj_style = self.context_proj_style[i](context_style)
                 out_attn, _ = self.cross_attentions[i](in_attn, context_proj, context_proj)
                 out_attn_image, _ = self.cross_attentions[i](in_attn, context_proj_image, context_proj_image)
-                out_att_style, _ = self.cross_attentions[i](in_attn, context_proj_style, context_proj_style)
+                # out_att_style, _ = self.cross_attentions[i](in_attn, context_proj_style, context_proj_style)
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
                 out_attn_image = out_attn_image.transpose(1, 2).reshape(batch_size, channels, h, w)
-                out_att_style = out_att_style.transpose(1, 2).reshape(batch_size, channels, h, w)
-                out = out + out_attn + out_attn_image + out_att_style
+                # out_att_style = out_att_style.transpose(1, 2).reshape(batch_size, channels, h, w)
+                # out = out + out_attn + out_attn_image + out_att_style
+                out = out + out_attn + out_attn_image 
         return out
