@@ -29,7 +29,7 @@ ldm_params:
       text_embed_dim: 512
       cond_drop_prob : 0.1
     image_condition_config:
-      image_embed_model: # yet to decide
+      image_embed_model: 'clip'
       train_image_embed_model : False
       image_embed_dim: 512
       cond_drop_prob : 0.1
@@ -67,4 +67,4 @@ train_params:
   autoencoder_acc_steps : 1
   autoencoder_img_save_steps : 8
   save_latents : False
-  ldm_ckpt_name: 'ddpm_ckpt.pth'
+  ldm_ckpt_name: 'cond_text.pth'
