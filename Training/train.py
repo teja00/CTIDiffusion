@@ -59,26 +59,26 @@ def train(args):
         if ('text') in condition_types:
             validate_text_config(condition_config)
             # TODO: we need to create a text model as below
-            text_tokenizer, text_model = get_tokenizer_and_model(condition_config['text_condition_config']['text_embed_model'], device = device)
+            text_tokenizer, text_model = get_tokenizer_and_model(condition_config['text_condition_config']['text_embed_model'], device=device)
             empty_text_embed = get_text_representation([''], text_tokenizer, text_model, device)
         if 'image' in condition_types:
             validate_image_config(condition_config)
             # TODO: we need to create an image model as below
-            image_model, image_processor = get_image_model_processor(condition_config['image_condition_config']['image_embed_model'], device = device)
-            empty_image = Image.new('RGB', (dataset_config['im_size'], dataset_config['im_size']), color = (0, 0, 0))
-            empty_image_embed = get_image_representation(empty_image,image_model, image_processor, device)
+            image_model, image_processor = get_image_model_processor(condition_config['image_condition_config']['image_embed_model'], device=device)
+            empty_image = Image.new('RGB', (dataset_config['im_size'], dataset_config['im_size']), color=(0, 0, 0))
+            empty_image = empty_image.to(device)  # Move empty_image to the correct device
+            empty_image_embed = get_image_representation(empty_image, image_model, image_processor, device)
 
 
     # TODO: we need to create a dataset Class as below
     im_dataset_cls = {
-        'IAMHandwriting': IAMDataset ,
+        'IAMHandwriting': IAMDataset,
     }.get(dataset_config['name'])
     
     im_dataset = im_dataset_cls(split='train',
                                 im_path=dataset_config['im_path'],
                                 im_size=dataset_config['im_size'],
-                                im_channels=dataset_config['im_channels'],
-                                )
+                                im_channels=dataset_config['im_channels'])
     im_dataset = None
     data_loader = DataLoader(im_dataset,
                              batch_size=train_config['ldm_batch_size'],
@@ -114,11 +114,12 @@ def train(args):
                     text_drop_prob = get_config_value(condition_config['text_condition_config'], 'cond_drop_prob', 0.0)
                     text_condition = drop_text_condition(text_condition, im, empty_text_embed, text_drop_prob)
                     cond_input['text'] = text_condition
-            if  'image' in condition_types:
+            if 'image' in condition_types:
                 with torch.no_grad():
                     assert 'image' in cond_input, "Image condition missing in cond_input"
                     validate_image_config(condition_config=condition_config)
                     image_condition = get_image_representation(cond_input['image'], image_model, image_processor, device)
+                    image_condition = image_condition.to(device)  # Move image_condition to the correct device
                     image_drop_prob = get_config_value(condition_config['image_condition_config'], 'cond_drop_prob', 0.0)
                     image_condition = drop_image_condition(image_condition, im, empty_image_embed, image_drop_prob)
                     cond_input['image'] = image_condition
@@ -145,7 +146,6 @@ def train(args):
                                                     train_config['ldm_ckpt_name']))
     
     print('Done Training ...')
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Arguments for ddpm training')
