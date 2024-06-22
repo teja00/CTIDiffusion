@@ -1,6 +1,3 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from wsgiref import validate
 import torch
 from PIL import Image
@@ -11,11 +8,11 @@ import numpy as np
 from tqdm import tqdm
 from torch.optim import Adam
 from torch.utils.data import DataLoader
-from ..Utils.iam_dataset import IAMDataset
+from Utils.iam_dataset import IAMDataset
 from Model.Unet import Unet
 from Model.NoiseScheduler import NoiseScheduler
-from ..Utils.config_utils import get_config_value, validate_image_config, validate_text_config
-from ..Utils.diffusion_utils import drop_image_condition, drop_text_condition
+from Utils.config_utils import get_config_value, validate_image_config, validate_text_config
+from Utils.diffusion_utils import drop_image_condition, drop_text_condition
 from Utils.pre_trained_utils import get_text_representation, get_tokenizer_and_model, get_image_model_processor, get_image_representation
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
