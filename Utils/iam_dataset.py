@@ -36,7 +36,7 @@ class IAMDataset(Dataset):
         """
         assert os.path.exists(im_path), "images path {} does not exist".format(im_path)
         ims = []
-        file = open(im_path+'/words_new.txt', "r")
+        file = open('/kaggle/input/iam-handwriting-word-database/words_new.txt', "r")
         file_content = file.readlines()
         texts = []
         
