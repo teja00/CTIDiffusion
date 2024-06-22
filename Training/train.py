@@ -1,3 +1,8 @@
+import sys
+import os
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
+
 from wsgiref import validate
 import torch
 from PIL import Image
@@ -8,10 +13,14 @@ import numpy as np
 from tqdm import tqdm
 from torch.optim import Adam
 from torch.utils.data import DataLoader
-from Utils import *
+from utils.iam_dataset import IAMDataset
+from utils.config_utils import get_config_value, validate_image_config, validate_text_config
+from utils.diffusion_utils import drop_image_condition, drop_text_condition
+from utils.pre_trained_utils import get_text_representation, get_tokenizer_and_model, get_image_model_processor, get_image_representation
 from Model.Unet import Unet
 from Model.NoiseScheduler import NoiseScheduler
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 
 # TODO Style component for training we need to do

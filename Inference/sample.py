@@ -1,3 +1,8 @@
+import sys
+import os
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
+
 from cgitb import text
 import random
 import torch
@@ -10,9 +15,9 @@ from PIL import Image
 from tqdm import tqdm
 from Model.Unet import Unet
 from Model.NoiseScheduler import NoiseScheduler
-from Utils.config_utils import get_config_value, validate_image_config, validate_text_config
-from Utils.iam_dataset import IAMDataset
-from Utils.pre_trained_utils import get_image_model_processor, get_text_representation, get_tokenizer_and_model, get_image_representation
+from utils.config_utils import get_config_value, validate_image_config, validate_text_config
+from utils.iam_dataset import IAMDataset
+from utils.pre_trained_utils import get_image_model_processor, get_text_representation, get_tokenizer_and_model, get_image_representation
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

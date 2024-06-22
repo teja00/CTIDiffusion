@@ -1,9 +1,14 @@
+import sys
+import os
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
+
 from multiprocessing import context
 import torch
 import torch.nn as nn
 from Model.blocks import get_time_embedding
 from Model.blocks import DownBlock, MidBlock, UpBlock
-from Utils.config_utils import get_config_value
+from utils.config_utils import get_config_value
 
 # This is just the DDPM Implementation of the UNET
 # Need to remember that in forward we are only sending one Context in which all the image, text and style are included
