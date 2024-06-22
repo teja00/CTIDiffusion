@@ -43,9 +43,12 @@ class IAMDataset(Dataset):
         
         for content in (file_content):
             split_content = content.split(' ')
-            
+            if('#' in split_content[0]):
+                continue
+
             if 'text' in self.condition_types:
-                texts.append(split_content[-1])
+                t = split_content[-1]
+                texts.append(t.split('\n')[0])
             if 'image' in self.condition_types:
                 image_name = split_content[0]
                 image_name_folder_1 = image_name.split('-')[0]

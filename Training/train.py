@@ -76,7 +76,8 @@ def train(args):
     im_dataset = im_dataset_cls(split='train',
                                 im_path=dataset_config['im_path'],
                                 im_size=dataset_config['im_size'],
-                                im_channels=dataset_config['im_channels'])
+                                im_channels=dataset_config['im_channels'],
+                                condition_config=condition_config)
     im_dataset = None
     data_loader = DataLoader(im_dataset,
                              batch_size=train_config['ldm_batch_size'],
