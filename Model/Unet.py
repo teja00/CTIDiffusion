@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 from Model.blocks import get_time_embedding
 from Model.blocks import DownBlock, MidBlock, UpBlock
-from utils.config_utils import get_config_value
+from Utils.config_utils import get_config_value
 
 # This is just the DDPM Implementation of the UNET
 # Need to remember that in forward we are only sending one Context in which all the image, text and style are included
