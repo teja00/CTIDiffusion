@@ -1,5 +1,7 @@
 import torch
 from transformers import DistilBertModel, DistilBertTokenizer, CLIPTokenizer, CLIPTextModel, AutoProcessor, CLIPModel
+from PIL import Image
+from torchvision import transforms
 
 # TODO we need to define the Text to embedding models
 # TODO we need to define the pretrained image embedding models
@@ -61,9 +63,12 @@ def get_text_representation(text, text_tokenizer, text_model, device,
     return text_embed
 
 def get_image_representation(image, image_model, image_processor, device):
+    if isinstance(image, Image.Image):
+        # Convert PIL image to PyTorch tensor
+        transform = transforms.ToTensor()
+        image = transform(image).unsqueeze(0).to(device)
     token_input = image_processor(images=image, return_tensors="pt")
-    with torch.no_grad():
-        image_features = image_model.get_image_features(**token_input).to(device)
-
+    token_input = {k: v.to(device) for k, v in token_input.items()}
+    image_features = image_model.get_image_features(**token_input).to(device)
     return image_features
     

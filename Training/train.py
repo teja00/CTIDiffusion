@@ -63,10 +63,8 @@ def train(args):
             empty_text_embed = get_text_representation([''], text_tokenizer, text_model, device)
         if 'image' in condition_types:
             validate_image_config(condition_config)
-            # TODO: we need to create an image model as below
-            image_model, image_processor = get_image_model_processor(condition_config['image_condition_config']['image_embed_model'], device=device)
+            image_model, image_processor = get_image_model_processor(condition_config['image_condition_config']['image_embed_model'], device)
             empty_image = Image.new('RGB', (dataset_config['im_size'], dataset_config['im_size']), color=(0, 0, 0))
-            empty_image = empty_image.to(device)  # Move empty_image to the correct device
             empty_image_embed = get_image_representation(empty_image, image_model, image_processor, device)
 
 
