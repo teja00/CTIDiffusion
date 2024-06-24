@@ -117,12 +117,11 @@ def train(args):
                 with torch.no_grad():
                     assert 'image' in cond_input, "Image condition missing in cond_input"
                     validate_image_config(condition_config=condition_config)
-                    image_condition = get_image_representation(cond_input['image'], image_model, image_processor, device)
-                    image_condition = image_condition.to(device)  # Move image_condition to the correct device
+                    image_condition = cond_input['image'].to(device)  # It's already a tensor, just move to device
                     image_drop_prob = get_config_value(condition_config['image_condition_config'], 'cond_drop_prob', 0.0)
                     image_condition = drop_image_condition(image_condition, im, empty_image_embed, image_drop_prob)
                     cond_input['image'] = image_condition
-             
+                        
             # Sample random noise
             noise = torch.randn_like(im).to(device)
             

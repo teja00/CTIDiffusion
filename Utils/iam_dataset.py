@@ -65,7 +65,7 @@ class IAMDataset(Dataset):
         return len(self.images)
     
     def __getitem__(self, index):
-        ######## Set Conditioning Info ########
+    ######## Set Conditioning Info ########
         cond_inputs = {}
         if 'text' in self.condition_types:
             cond_inputs['text'] = self.texts[index]
@@ -73,18 +73,22 @@ class IAMDataset(Dataset):
         #######################################
         
         im = Image.open(self.images[index])
-        im_tensor = torchvision.transforms.Compose([
+        transform = torchvision.transforms.Compose([
             torchvision.transforms.Resize(self.im_size),
             torchvision.transforms.CenterCrop(self.im_size),
             torchvision.transforms.ToTensor(),
-        ])(im)
+        ])
+        
+        im_tensor = transform(im)
         im.close()
-    
+
         # Convert input to -1 to 1 range.
         im_tensor = (2 * im_tensor) - 1
 
         if 'image' in self.condition_types:
-            cond_inputs['image'] = im
+            # Use the same transform for the condition image
+            cond_inputs['image'] = im_tensor  # Use the tensor version instead of PIL Image
+
         if len(self.condition_types) == 0:
             return im_tensor
         else:
