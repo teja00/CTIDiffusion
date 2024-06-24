@@ -75,7 +75,9 @@ class Unet(nn.Module):
                                         is_down_sample=self.down_sample[i],
                                         num_heads=self.num_heads,
                                         num_layers=self.num_down_layers,
-                                        is_attn=self.attns[i], norm_channels=self.norm_channels,
+                                        is_attn=self.attns[i], 
+                                        norm_channels=self.norm_channels,
+                                        cross_attn= self.text_cond,
                                         context_dim = self.text_embed_dim,
                                         context_dim_image=self.image_embed_dim))
         
@@ -85,6 +87,7 @@ class Unet(nn.Module):
                                       num_heads=self.num_heads,
                                       num_layers=self.num_mid_layers,
                                       norm_channels=self.norm_channels,
+                                      cross_attn= self.text_cond,
                                       context_dim = self.text_embed_dim,
                                       context_dim_image=self.image_embed_dim))
         
@@ -95,6 +98,7 @@ class Unet(nn.Module):
                                         num_heads=self.num_heads,
                                         num_layers=self.num_up_layers,
                                         norm_channels=self.norm_channels,
+                                        cross_attn= self.text_cond,
                                         context_dim=self.text_embed_dim,
                                         context_dim_image=self.image_embed_dim))
         
