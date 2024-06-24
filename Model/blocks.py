@@ -323,7 +323,7 @@ class UpBlock(nn.Module):
     """
     
     def __init__(self, in_channels, out_channels, t_emb_dim,
-                 up_sample, num_heads, num_layers, attn, norm_channels,
+                 up_sample, num_heads, num_layers, norm_channels,
                  cross_attn=False, context_dim = None, context_dim_image = None):
         super().__init__()
         self.num_layers = num_layers
@@ -331,7 +331,6 @@ class UpBlock(nn.Module):
         self.t_emb_dim = t_emb_dim
         self.cross_attn = cross_attn
         self.context_dim = context_dim
-        self.attn = attn
         self.resnet_conv_first = nn.ModuleList(
             [
                 nn.Sequential(
@@ -363,20 +362,19 @@ class UpBlock(nn.Module):
                 for _ in range(num_layers)
             ]
         )
-        if self.attn:
-            self.attention_norms = nn.ModuleList(
-                [
-                    nn.GroupNorm(norm_channels, out_channels)
-                    for _ in range(num_layers)
-                ]
-            )
-            
-            self.attentions = nn.ModuleList(
-                [
-                    nn.MultiheadAttention(out_channels, num_heads, batch_first=True)
-                    for _ in range(num_layers)
-                ]
-            )
+        self.attention_norms = nn.ModuleList(
+            [
+                nn.GroupNorm(norm_channels, out_channels)
+                for _ in range(num_layers)
+            ]
+        )
+        
+        self.attentions = nn.ModuleList(
+            [
+                nn.MultiheadAttention(out_channels, num_heads, batch_first=True)
+                for _ in range(num_layers)
+            ]
+        )
         
         # TODO Cross Attention [image and Style need to add]
         if self.cross_attn:
