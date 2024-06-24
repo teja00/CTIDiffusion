@@ -27,10 +27,10 @@ class NoiseScheduler:
         batch_size = original_shape[0]
         
         device = original_image.device
-        t = t.to(device)
         
-        sqrt_alpha_cum_prod = self.sqrt_alpha_cum_prod[t].to(device).reshape(batch_size)
-        sqrt_one_minus_alpha_cum_prod = self.sqrt_one_minus_alpha_cum_prod[t].to(device).reshape(batch_size)
+        # Ensure t is on CPU for indexing, then move the resultant tensor to the original_image device
+        sqrt_alpha_cum_prod = self.sqrt_alpha_cum_prod[t.cpu()].to(device).reshape(batch_size)
+        sqrt_one_minus_alpha_cum_prod = self.sqrt_one_minus_alpha_cum_prod[t.cpu()].to(device).reshape(batch_size)
 
         for _ in range(len(original_shape) - 1):
             sqrt_alpha_cum_prod = sqrt_alpha_cum_prod.unsqueeze(-1)
@@ -49,19 +49,19 @@ class NoiseScheduler:
         device = x_t.device
         t = t.to(device)
 
-        x_0 = ((x_t - (self.sqrt_one_minus_alpha_cum_prod[t] * noise_pred)) /
-              self.sqrt_alpha_cum_prod[t])
+        x_0 = ((x_t - (self.sqrt_one_minus_alpha_cum_prod[t.cpu()] * noise_pred)) /
+              self.sqrt_alpha_cum_prod[t.cpu()])
 
         x_0 = torch.clamp(x_0, -1., 1.)
 
-        mean = x_t - ((self.betas[t] * noise_pred) / self.sqrt_one_minus_alpha_cum_prod[t])
-        mean = mean / torch.sqrt(self.alphas[t])
+        mean = x_t - ((self.betas[t.cpu()] * noise_pred) / self.sqrt_one_minus_alpha_cum_prod[t.cpu()])
+        mean = mean / torch.sqrt(self.alphas[t.cpu()])
 
         if t == 0:
             return mean, x_0
         else:
-            variance = (1 - self.alpha_cum_prod[t - 1]) / (1.0 - self.alpha_cum_prod[t])
-            variance = variance * self.betas[t]
+            variance = (1 - self.alpha_cum_prod[t.cpu() - 1]) / (1.0 - self.alpha_cum_prod[t.cpu()])
+            variance = variance * self.betas[t.cpu()]
             sigma = variance ** 0.5
             z = torch.randn(x_t.shape).to(device)
             
