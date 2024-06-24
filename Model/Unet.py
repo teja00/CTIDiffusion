@@ -72,7 +72,7 @@ class Unet(nn.Module):
         self.downs = nn.ModuleList([])
         for i in range(len(self.down_channels) - 1):
             self.downs.append(DownBlock(self.down_channels[i], self.down_channels[i + 1], self.t_emb_dim,
-                                        down_sample=self.down_sample[i],
+                                        is_down_sample=self.down_sample[i],
                                         num_heads=self.num_heads,
                                         num_layers=self.num_down_layers,
                                         attn=self.attns[i], norm_channels=self.norm_channels,
