@@ -63,9 +63,7 @@ def train(args):
             empty_text_embed = get_text_representation([''], text_tokenizer, text_model, device)
         if 'image' in condition_types:
             validate_image_config(condition_config)
-            image_model, image_processor = get_image_model_processor(condition_config['image_condition_config']['image_embed_model'], device)
-            empty_image = Image.new('RGB', (dataset_config['im_size'], dataset_config['im_size']), color=(0, 0, 0))
-            empty_image_embed = get_image_representation(empty_image, image_model, image_processor, device)
+            empty_image_embed = torch.zeros((3, dataset_config['im_size'], dataset_config['im_size']), device=device)
 
 
     # TODO: we need to create a dataset Class as below

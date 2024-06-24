@@ -17,16 +17,12 @@ def drop_text_condition(text_embed, im, empty_text_embed,text_drop_prob):
 def drop_image_condition(image_embed, empty_image_embed, image_drop_prob):
     if image_drop_prob > 0:
         # Create a drop mask based on the drop probability
-        image_drop_mask = torch.zeros((image_embed.shape[0],), device=image_embed.device).float().uniform_(0, 1) < image_drop_prob
+        image_drop_mask = torch.zeros((image_embed.shape[0]), device=image_embed.device).float().uniform_(0, 1) < image_drop_prob
         
         # Ensure empty_image_embed is provided
         assert empty_image_embed is not None, "Empty image embed is not provided"
         
-        # Ensure empty_image_embed has the same shape as a single image in image_embed
-        if empty_image_embed.shape != image_embed.shape[1:]:
-            empty_image_embed = empty_image_embed.expand(image_embed.shape[1:])
-        
         # Apply the mask to replace selected embeddings with the empty embedding
-        image_embed[image_drop_mask] = empty_image_embed
+        image_embed[image_drop_mask, :] = empty_image_embed[0]
     
     return image_embed
