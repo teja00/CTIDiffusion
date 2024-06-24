@@ -1,6 +1,6 @@
 dataset_params:
   im_path: '/kaggle/input/iam-handwriting-word-database/iam_words'
-  im_channels : 3 # need to check on this
+  im_channels : 1 # need to check on this
   im_size : 256 # need to check on this
   name: 'IAMHandwriting'
 
