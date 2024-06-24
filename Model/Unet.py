@@ -75,7 +75,7 @@ class Unet(nn.Module):
                                         is_down_sample=self.down_sample[i],
                                         num_heads=self.num_heads,
                                         num_layers=self.num_down_layers,
-                                        attn=self.attns[i], norm_channels=self.norm_channels,
+                                        is_attn=self.attns[i], norm_channels=self.norm_channels,
                                         context_dim = self.text_embed_dim,
                                         context_dim_image=self.image_embed_dim))
         
