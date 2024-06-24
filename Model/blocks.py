@@ -116,7 +116,7 @@ class DownBlock(nn.Module):
         # Downsample Block
         self.residual_input_conv = nn.ModuleList(
             [
-                nn.Conv2d(in_channels if i ==0 else out_channels, out_channels, stride = 1)
+                nn.Conv2d(in_channels if i ==0 else out_channels, out_channels, kernel_size = 1)
                 for i in range(num_layers)
             ]
         )
