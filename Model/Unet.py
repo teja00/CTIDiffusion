@@ -71,15 +71,17 @@ class Unet(nn.Module):
         
         self.downs = nn.ModuleList([])
         for i in range(len(self.down_channels) - 1):
-            self.downs.append(DownBlock(self.down_channels[i], self.down_channels[i + 1], self.t_emb_dim,
-                                        is_down_sample=self.down_sample[i],
-                                        num_heads=self.num_heads,
-                                        num_layers=self.num_down_layers,
-                                        is_attn=self.attns[i], 
-                                        norm_channels=self.norm_channels,
-                                        cross_attn= self.text_cond,
-                                        context_dim = self.text_embed_dim,
-                                        context_dim_image=self.image_embed_dim))
+            self.downs.append(DownBlock(in_channels=self.down_channels[i], 
+                                out_channels=self.down_channels[i + 1], 
+                                norm_channels=self.norm_channels, 
+                                num_heads=self.num_heads, 
+                                t_emb_dim=self.t_emb_dim,
+                                is_down_sample=self.down_sample[i],
+                                num_layers=self.num_down_layers,
+                                is_attn=self.attns[i],
+                                cross_attn=self.text_cond,
+                                context_dim=self.text_embed_dim,
+                                context_dim_image=self.image_embed_dim))
         
         self.mids = nn.ModuleList([])
         for i in range(len(self.mid_channels) - 1):
