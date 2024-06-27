@@ -134,7 +134,7 @@ class DownBlock(nn.Module):
             out = self.resnet_block_second[i](out)
             out = out + self.residual_input_conv[i](resnet_input)
             
-            if self.attn:
+            if self.is_attn:
                 # Attention Block
                 batch_size, channels, h, w = out.shape
                 in_attn = out.reshape(batch_size, channels, h * w)
