@@ -140,7 +140,6 @@ class DownBlock(nn.Module):
                 in_attn = out.reshape(batch_size, channels, h * w)
                 in_attn = self.attention_norms[i](in_attn)
                 in_attn = in_attn.transpose(1, 2)
-                # we are doing the transpose because
                 # This is necessary because the attention mechanism operates over the sequence dimension, and the nn.MultiheadAttention expects the sequence length to be the second dimension
                 out_attn, _ = self.attentions[i](in_attn, in_attn, in_attn)
                 out_attn = out_attn.transpose(1, 2).reshape(batch_size, channels, h, w)
