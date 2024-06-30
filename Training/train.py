@@ -63,7 +63,6 @@ def train(args):
             empty_text_embed = get_text_representation([''], text_tokenizer, text_model, device)
         if 'image' in condition_types:
             validate_image_config(condition_config)
-            image_model, image_processor = get_image_model_processor(condition_config['image_condition_config']['image_embed_model'], device = device)
             empty_image_embed = torch.zeros((3, dataset_config['im_size'], dataset_config['im_size']), device=device)
 
 
@@ -76,7 +75,8 @@ def train(args):
                                 im_path=dataset_config['im_path'],
                                 im_size=dataset_config['im_size'],
                                 im_channels=dataset_config['im_channels'],
-                                condition_config=condition_config)
+                                condition_config=condition_config,
+                                device = device)
     
     data_loader = DataLoader(im_dataset,
                              batch_size=train_config['ldm_batch_size'],
@@ -119,7 +119,7 @@ def train(args):
                     image_condition = cond_input['image'].to(device)
                     # image_drop_prob = get_config_value(condition_config['image_condition_config'], 'cond_drop_prob', 0.0)
                     # image_condition = drop_image_condition(image_condition, empty_image_embed, image_drop_prob)
-                    cond_input['image'] = get_image_representation(image_condition,image_model,image_processor,device)
+                    cond_input['image'] = image_condition
                         
             # Sample random noise
             noise = torch.randn_like(im).to(device)

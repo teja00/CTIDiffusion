@@ -19,7 +19,7 @@ def get_tokenizer_and_model(model_type, device, eval_mode=True):
         text_model.eval()
     return text_tokenizer, text_model
 
-def get_image_model_processor(model_type, device, eval_model=True):
+def get_image_model_processor(device, eval_model=True, model_type ='clip'):
     if model_type == 'clip':
         image_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
         image_processor = AutoProcessor.from_pretrained("openai/clip-vit-base-patch32")

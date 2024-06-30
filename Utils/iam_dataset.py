@@ -8,6 +8,8 @@ from PIL import Image
 from tqdm import tqdm
 from torch.utils.data.dataset import Dataset
 
+from pre_trained_utils import get_image_model_processor, get_image_representation
+
 
 class IAMDataset(Dataset):
     r"""
@@ -16,12 +18,13 @@ class IAMDataset(Dataset):
     are under one directory.
     """
     
-    def __init__(self, split, im_path, im_size=256, im_channels=3, im_ext='png',condition_config=None):
+    def __init__(self, split, im_path, device, im_size=256, im_channels=3, im_ext='png',condition_config=None):
         self.split = split
         self.im_size = im_size
         self.im_channels = im_channels
         self.im_ext = im_ext
         self.im_path = im_path
+        self.device = device
         
         self.condition_types = [] if condition_config is None else condition_config['condition_types']
         
@@ -84,8 +87,13 @@ class IAMDataset(Dataset):
         # Convert input to -1 to 1 range.
         im_tensor = (2 * im_tensor) - 1
 
+        # conditional image tensor below
+
+        image_model, image_processor = get_image_model_processor(self.device)
+        
+
         if 'image' in self.condition_types:
-            cond_inputs['image'] = im  
+            cond_inputs['image'] = get_image_representation(im,image_model=image_model, image_processor=image_processor)
 
         im.close()
 
