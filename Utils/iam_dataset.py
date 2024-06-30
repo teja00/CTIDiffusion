@@ -93,7 +93,7 @@ class IAMDataset(Dataset):
         
 
         if 'image' in self.condition_types:
-            cond_inputs['image'] = get_image_representation(im,image_model=image_model, image_processor=image_processor)
+            cond_inputs['image'] = get_image_representation(im,image_model=image_model, image_processor=image_processor,device=self.device)
 
         im.close()
 
