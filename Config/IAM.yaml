@@ -1,6 +1,6 @@
 dataset_params:
   im_path: '/kaggle/input/iam-handwriting-word-database/iam_words'
-  im_channels : 3 # need to check on this
+  im_channels : 1 # need to check on this
   im_size : 28 # need to check on this
   name: 'IAMHandwriting'
 
@@ -50,8 +50,8 @@ autoencoder_params:
 train_params:
   seed : 1111
   task_name: 'IAMHandwriting'
-  ldm_batch_size: 10
-  autoencoder_batch_size: 10
+  ldm_batch_size: 64
+  autoencoder_batch_size: 64
   disc_start: 1000
   disc_weight: 0.5
   codebook_weight: 1
