@@ -9,8 +9,7 @@ from PIL import Image
 from tqdm import tqdm
 from torch.utils.data.dataset import Dataset
 
-from pre_trained_utils import get_image_model_processor, get_image_representation
-
+from Utils.pre_trained_utils import get_image_model_processor, get_image_representation
 
 class IAMDataset(Dataset):
     r"""
