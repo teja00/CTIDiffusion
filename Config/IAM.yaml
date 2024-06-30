@@ -1,7 +1,7 @@
 dataset_params:
   im_path: '/kaggle/input/iam-handwriting-word-database/iam_words'
-  im_channels : 1 # need to check on this
-  im_size : 256 # need to check on this
+  im_channels : 3 # need to check on this
+  im_size : 28 # need to check on this
   name: 'IAMHandwriting'
 
 diffusion_params:
@@ -35,7 +35,7 @@ ldm_params:
       cond_drop_prob : 0.1
 
 autoencoder_params:
-  z_channels: 1
+  z_channels: 3
   codebook_size : 20
   down_channels : [32, 64, 128]
   mid_channels : [128, 128]

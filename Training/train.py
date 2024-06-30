@@ -116,8 +116,8 @@ def train(args):
                     assert 'image' in cond_input, "Image condition missing in cond_input"
                     validate_image_config(condition_config=condition_config)
                     image_condition = cond_input['image'].to(device)  # It's already a tensor, just move to device
-                    # image_drop_prob = get_config_value(condition_config['image_condition_config'], 'cond_drop_prob', 0.0)
-                    # image_condition = drop_image_condition(image_condition, empty_image_embed, image_drop_prob)
+                    image_drop_prob = get_config_value(condition_config['image_condition_config'], 'cond_drop_prob', 0.0)
+                    image_condition = drop_image_condition(image_condition, empty_image_embed, image_drop_prob)
                     cond_input['image'] = image_condition
                         
             # Sample random noise
