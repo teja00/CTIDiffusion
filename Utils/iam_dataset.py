@@ -80,14 +80,15 @@ class IAMDataset(Dataset):
         ])
         
         im_tensor = transform(im)
-        im.close()
 
         # Convert input to -1 to 1 range.
         im_tensor = (2 * im_tensor) - 1
 
         if 'image' in self.condition_types:
-            # Use the same transform for the condition image
-            cond_inputs['image'] = im_tensor  # Use the tensor version instead of PIL Image
+            cond_inputs['image'] = im  
+
+        im.close()
+
 
         if len(self.condition_types) == 0:
             return im_tensor

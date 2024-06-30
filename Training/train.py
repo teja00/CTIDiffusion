@@ -63,6 +63,7 @@ def train(args):
             empty_text_embed = get_text_representation([''], text_tokenizer, text_model, device)
         if 'image' in condition_types:
             validate_image_config(condition_config)
+            image_model, image_processor = get_image_model_processor(condition_config['image_condition_config']['image_embed_model'], device = device)
             empty_image_embed = torch.zeros((3, dataset_config['im_size'], dataset_config['im_size']), device=device)
 
 
@@ -115,10 +116,10 @@ def train(args):
                 with torch.no_grad():
                     assert 'image' in cond_input, "Image condition missing in cond_input"
                     validate_image_config(condition_config=condition_config)
-                    image_condition = cond_input['image'].to(device)  # It's already a tensor, just move to device
+                    image_condition = cond_input['image'].to(device)
                     # image_drop_prob = get_config_value(condition_config['image_condition_config'], 'cond_drop_prob', 0.0)
                     # image_condition = drop_image_condition(image_condition, empty_image_embed, image_drop_prob)
-                    cond_input['image'] = image_condition
+                    cond_input['image'] = get_image_representation(image_condition,image_model,image_processor,device)
                         
             # Sample random noise
             noise = torch.randn_like(im).to(device)
