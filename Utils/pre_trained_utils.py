@@ -65,6 +65,7 @@ def get_text_representation(text, text_tokenizer, text_model, device,
 def get_image_representation(image, image_model, image_processor, device):
     if isinstance(image, Image.Image):
         # Convert PIL image to PyTorch tensor
+        # TODO We need to fix this code
         transform = transforms.ToTensor()
         image = transform(image).unsqueeze(0).to(device)
     token_input = image_processor(images=image, return_tensors="pt")

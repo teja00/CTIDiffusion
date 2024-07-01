@@ -96,6 +96,7 @@ def train(args):
     for epoch_idx in range(num_epochs):
         losses = []
         for data in tqdm(data_loader):
+            # TODO We need to check when the data is coming we need to check the image conditioning data
             optimizer.zero_grad()
             cond_input = None
             if condition_config is not None:
