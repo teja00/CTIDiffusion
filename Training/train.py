@@ -13,6 +13,8 @@ import numpy as np
 from tqdm import tqdm
 from torch.optim import Adam
 from torch.utils.data import DataLoader
+from torch.cuda.amp import autocast, GradScaler
+
 from Utils.iam_dataset import IAMDataset
 from Utils.config_utils import get_config_value, validate_image_config, validate_text_config
 from Utils.diffusion_utils import drop_image_condition, drop_text_condition
@@ -27,6 +29,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def train(args):
     # Read the config file #
+    torch.cuda.empty_cache()
+    
+    # Set PYTORCH_CUDA_ALLOC_CONF
+    import os
+    os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:128'
     with open(args.config_path, 'r') as file:
         try:
             config = yaml.safe_load(file)
@@ -80,7 +87,8 @@ def train(args):
     
     data_loader = DataLoader(im_dataset,
                              batch_size=train_config['ldm_batch_size'],
-                             shuffle=True)
+                             shuffle=True,
+                             num_workers= train_config['num_workers'])
     
     # Instantiate the model
     model = Unet(im_channels=autoencoder_model_config['z_channels'],
@@ -92,6 +100,8 @@ def train(args):
     optimizer = Adam(model.parameters(), lr=train_config['ldm_lr'])
     criterion = torch.nn.MSELoss()
     
+    # mixed precision setup
+    scaler = GradScaler()
 
     for epoch_idx in range(num_epochs):
         losses = []
@@ -131,12 +141,14 @@ def train(args):
             
             # Add noise to images according to timestep
             noisy_im = scheduler.add_noise(im, noise, t)
-            noise_pred = model(noisy_im, t, cond_input=cond_input)
-            
-            loss = criterion(noise_pred, noise)
+
+            with autocast():
+                noise_pred = model(noisy_im, t, cond_input=cond_input)
+                loss = criterion(noise_pred, noise)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
             losses.append(loss.item())
-            loss.backward()
-            optimizer.step()
         print('Finished epoch:{} | Loss : {:.4f}'.format(
             epoch_idx + 1,
             np.mean(losses)))

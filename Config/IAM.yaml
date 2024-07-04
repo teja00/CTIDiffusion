@@ -50,7 +50,8 @@ autoencoder_params:
 train_params:
   seed : 1111
   task_name: 'IAMHandwriting'
-  ldm_batch_size: 64
+  ldm_batch_size: 4
+  num_workers: 4
   autoencoder_batch_size: 64
   disc_start: 1000
   disc_weight: 0.5
