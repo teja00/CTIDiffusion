@@ -72,7 +72,7 @@ class IAMDataset(Dataset):
 
         #######################################
         
-        im = Image.open(self.images[index]).convert('RGB')
+        im = Image.open(self.images[index])
         transform = torchvision.transforms.Compose([
             torchvision.transforms.Resize(self.im_size),
             torchvision.transforms.CenterCrop(self.im_size),
