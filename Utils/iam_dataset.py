@@ -74,10 +74,11 @@ class IAMDataset(Dataset):
         
         im = Image.open(self.images[index])
         transform = torchvision.transforms.Compose([
-            torchvision.transforms.Resize(self.im_size),
-            torchvision.transforms.CenterCrop(self.im_size),
-            torchvision.transforms.ToTensor(),
-        ])
+        torchvision.transforms.Resize(self.im_size),
+        torchvision.transforms.CenterCrop(self.im_size),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+    ])
         
         im_tensor = transform(im).to(self.device)
 
