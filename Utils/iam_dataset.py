@@ -76,6 +76,7 @@ class IAMDataset(Dataset):
         #######################################
         
         im = Image.open(self.images[index])
+        im = im.to(self.device).detach()
         transform = torchvision.transforms.Compose([
             torchvision.transforms.Resize(self.im_size),
             torchvision.transforms.CenterCrop(self.im_size),
