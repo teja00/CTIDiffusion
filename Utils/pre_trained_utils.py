@@ -64,12 +64,15 @@ def get_text_representation(text, text_tokenizer, text_model, device,
 
 def get_image_representation(image, image_model, image_processor, device):
     if isinstance(image, Image.Image):
+        # Ensure the image has three channels (RGB)
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
         # Convert PIL image to PyTorch tensor
-        # TODO We need to fix this code
         transform = transforms.ToTensor()
         image = transform(image).unsqueeze(0).to(device)
     token_input = image_processor(images=image, return_tensors="pt")
     token_input = {k: v.to(device) for k, v in token_input.items()}
     image_features = image_model.get_image_features(**token_input).to(device)
     return image_features
+
     
