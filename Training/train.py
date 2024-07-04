@@ -80,8 +80,7 @@ def train(args):
                              batch_size=train_config['ldm_batch_size'],
                              shuffle=True,
                              num_workers=train_config['num_workers'],
-                             pin_memory=True)  # Ensure memory pinning for performance
-    
+                            )    
     # Instantiate the model
     model = Unet(im_channels=autoencoder_model_config['z_channels'],
                  model_config=diffusion_model_config).to(device)
