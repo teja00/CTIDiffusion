@@ -84,10 +84,13 @@ class IAMDataset(Dataset):
         # Convert input to -1 to 1 range.
         im_tensor = (2 * im_tensor) - 1
 
+        # Convert im_tensor back to [0, 1] range for PIL compatibility
+        im_tensor_pil = (im_tensor + 1) / 2
+
         # conditional image tensor below
         if 'image' in self.condition_types:
             image_model, image_processor = get_image_model_processor(self.device)
-            cond_inputs['image'] = get_image_representation(im_tensor.unsqueeze(0), image_model=image_model, image_processor=image_processor, device=self.device).squeeze(0).detach()
+            cond_inputs['image'] = get_image_representation(im_tensor_pil.unsqueeze(0), image_model=image_model, image_processor=image_processor, device=self.device).squeeze(0).detach()
 
         im.close()
 
