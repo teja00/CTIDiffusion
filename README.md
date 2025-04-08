@@ -1,4 +1,4 @@
-# CTIDiffusion
+# CTIG-Diffusion
 
 This repository contains the implementation of the paper titled "Conditional Text Image Generation with Diffusion Models" (arXiv:2306.10804v1). This project focuses on generating text images using diffusion models under various conditions, including image condition, text condition, and style condition, to control the attributes, contents, and styles of the generated samples.
 
